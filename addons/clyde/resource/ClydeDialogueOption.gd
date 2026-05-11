@@ -1,11 +1,12 @@
 class_name ClydeDialogueOption extends Resource
 
 @export var text: String = ""
-@export var speaker: Variant = null
-@export var id: Variant = null
-@export var tags: Array = []
+@export var speaker: String = ""
+@export var id: String = ""
+@export var tags: Array[String] = []
 @export var visited: bool = false
-@export var is_visible: Variant = null
+@export var has_visibility: bool = false
+@export var is_visible: bool = false
 
 func to_dict() -> Dictionary:
 	var data = {
@@ -15,6 +16,6 @@ func to_dict() -> Dictionary:
 		"tags": tags,
 		"visited": visited,
 	}
-	if is_visible != null:
+	if has_visibility:
 		data.is_visible = is_visible
 	return data

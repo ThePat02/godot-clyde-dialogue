@@ -1,6 +1,6 @@
 class_name ClydeDialogueOptions extends ClydeDialogueContent
 
-@export var text: Variant = null
+@export var text: String = ""
 @export var options: Array[ClydeDialogueOption] = []
 
 func _init():

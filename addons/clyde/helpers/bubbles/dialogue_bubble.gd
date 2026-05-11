@@ -75,7 +75,7 @@ func show_bubble():
 
 
 func set_content(content: ClydeDialogueContent):
-	if _speaker_field.text == "" and content.speaker != null:
+	if _speaker_field.text == "" and content.speaker != "":
 		_speaker_field.text = content.speaker
 		_speaker_field.show()
 
@@ -140,8 +140,8 @@ func _setup_options(content: ClydeDialogueOptions):
 			if option.tags.has("fallback"):
 				_fallback_option  = i
 
-	var content_name = content.get("text")
-	if content_name == null or content_name.strip_edges().is_empty():
+	var content_name = content.text
+	if content_name.strip_edges().is_empty():
 		_text_field.hide()
 	else:
 		_text_field.visible_characters = 0

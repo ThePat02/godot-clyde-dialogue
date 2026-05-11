@@ -36,7 +36,7 @@ func _configure_line(content: ClydeDialogueContent, should_show_meta: bool):
 
 
 func _configure_options(content: ClydeDialogueOptions, should_show_meta: bool):
-	if content.text == null:
+	if content.text == "":
 		_content_field.hide()
 	else:
 		_content_field.text = content.text
@@ -58,21 +58,21 @@ func _configure_options(content: ClydeDialogueOptions, should_show_meta: bool):
 
 
 func _set_speaker(content: ClydeDialogueContent):
-	if content.speaker == null:
+	if content.speaker == "":
 		_speaker_field.hide()
 	else:
 		_speaker_field.text = content.speaker
 
 
 func _set_meta(content: ClydeDialogueContent):
-	if content.meta != null:
+	if not content.meta.is_empty():
 		_meta = content.meta
 
 
 func _set_id_and_tags(content: ClydeDialogueContent, should_show_meta: bool):
-	if content.id != null:
+	if content.id != "":
 		_add_id_badge(content.id)
-	if content.tags != null and content.tags.size() > 0:
+	if content.tags.size() > 0:
 		_add_tags_badges(content.tags)
 	if  should_show_meta and _line_meta.get_child_count() > 0:
 		_line_meta.show()

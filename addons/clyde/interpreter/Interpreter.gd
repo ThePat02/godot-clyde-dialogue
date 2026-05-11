@@ -209,10 +209,13 @@ func _handle_line_node(line_node) -> DialogueLine:
 		line_node["_index"] = _generate_index()
 
 	var line = DialogueLine.new()
-	line.tags = line_node.get("tags", [])
-	line.id = line_node.get("id")
-	line.speaker = line_node.get("speaker")
-	line.text = _replace_variables(_translate_text(line_node.get("id"), line_node.get("value"), line_node.get("id_suffixes")))
+	var tags = line_node.get("tags")
+	line.tags = tags if tags != null else []
+	line.id = line_node.get("id") if line_node.get("id") != null else ""
+	line.speaker = line_node.get("speaker") if line_node.get("speaker") != null else ""
+	var translated_line = _translate_text(line_node.get("id"), line_node.get("value"), line_node.get("id_suffixes"))
+	var replaced_line = _replace_variables(translated_line)
+	line.text = replaced_line if replaced_line != null else ""
 	if line_node.has("meta"):
 		line.meta = line_node.meta
 	return line
@@ -238,10 +241,13 @@ func _handle_options_node(options_node) -> DialogueOptions:
 		return _handle_next_node(_stack_head().current)
 
 	var o = DialogueOptions.new()
-	o.speaker = options_node.get("speaker")
-	o.id = options_node.get("id")
-	o.tags = options_node.get("tags", [])
-	o.text = _replace_variables(_translate_text(options_node.get("id"), options_node.get("name"), options_node.get("id_suffixes")))
+	o.speaker = options_node.get("speaker") if options_node.get("speaker") != null else ""
+	o.id = options_node.get("id") if options_node.get("id") != null else ""
+	var option_tags = options_node.get("tags")
+	o.tags = option_tags if option_tags != null else []
+	var translated_options = _translate_text(options_node.get("id"), options_node.get("name"), options_node.get("id_suffixes"))
+	var replaced_options = _replace_variables(translated_options)
+	o.text = replaced_options if replaced_options != null else ""
 	o.options = options.map(func(e): return _map_option(e, options.find(e), _config.include_hidden_options))
 	if options_node.has("meta"):
 		o.meta = options_node.meta
@@ -285,13 +291,17 @@ func _check_if_option_not_accessed(option):
 func _map_option(option, _index, include_visibility_prop = false) -> DialogueOption:
 	var o = option if option.type == 'option' else option.content
 	var result = DialogueOption.new()
-	result.speaker = o.get("speaker")
-	result.id = o.get("id")
-	result.tags = o.get("tags", [])
-	result.text = _replace_variables(_translate_text(o.get("id"), o.get("name"), o.get("id_suffixes")))
+	result.speaker = o.get("speaker") if o.get("speaker") != null else ""
+	result.id = o.get("id") if o.get("id") != null else ""
+	var option_tags = o.get("tags")
+	result.tags = option_tags if option_tags != null else []
+	var translated_option = _translate_text(o.get("id"), o.get("name"), o.get("id_suffixes"))
+	var replaced_option = _replace_variables(translated_option)
+	result.text = replaced_option if replaced_option != null else ""
 	result.visited = _mem.was_already_accessed(option._index)
 
 	if include_visibility_prop:
+		result.has_visibility = true
 		result.is_visible = o.get("is_visible", false)
 	return result
 

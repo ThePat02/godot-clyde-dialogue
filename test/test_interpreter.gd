@@ -10,9 +10,9 @@ func parse(input, include_meta = false):
 func _line(line):
 	return {
 		"type": "line",
-		"text": line.get("text"),
-		"speaker": line.get("speaker"),
-		"id": line.get("id"),
+		"text": line.get("text", ""),
+		"speaker": line.get("speaker", ""),
+		"id": line.get("id", ""),
 		"tags": line.get("tags", [])
 	}
 
@@ -20,19 +20,19 @@ func _line(line):
 func _options(options):
 	return {
 		"type": "options",
-		"text": options.get("text"),
-		"id": options.get("id"),
+		"text": options.get("text", ""),
+		"id": options.get("id", ""),
 		"tags": options.get("tags", []),
-		"speaker": options.get("speaker"),
+		"speaker": options.get("speaker", ""),
 		"options": options.get("options")
 	}
 
 
 func _option(option):
 	return {
-		"text": option.get("text"),
-		"speaker": option.get("speaker"),
-		"id": option.get("id"),
+		"text": option.get("text", ""),
+		"speaker": option.get("speaker", ""),
+		"id": option.get("id", ""),
 		"tags": option.get("tags", []),
 		"visited": option.get("visited", false),
 	}
