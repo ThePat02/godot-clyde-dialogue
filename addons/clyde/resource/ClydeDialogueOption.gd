@@ -5,7 +5,7 @@ class_name ClydeDialogueOption extends Resource
 @export var id: String = ""
 @export var tags: Array[String] = []
 @export var visited: bool = false
-@export var has_visibility: bool = false
+var has_visibility: bool = false
 @export var is_visible: bool = false
 
 func to_dict() -> Dictionary:

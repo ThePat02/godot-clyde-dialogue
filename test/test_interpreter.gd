@@ -56,9 +56,11 @@ func _assert_content_eq(actual, expected):
 	var actual_dict = _as_dict(actual)
 	var expected_dict = _as_dict(expected)
 	if actual_dict is Dictionary and expected_dict is Dictionary:
-		for key in actual_dict.keys():
-			if not expected_dict.has(key):
-				actual_dict.erase(key)
+		var filtered_actual = {}
+		for key in expected_dict.keys():
+			if actual_dict.has(key):
+				filtered_actual[key] = actual_dict[key]
+		actual_dict = filtered_actual
 	assert_eq_deep(actual_dict, expected_dict)
 
 
