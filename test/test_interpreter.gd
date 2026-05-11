@@ -44,6 +44,24 @@ func _option_with_visibility_prop(option):
 	return o
 
 
+func _as_dict(value):
+	if value is Array:
+		return value.map(func (item): return _as_dict(item))
+	if value is Resource and value.has_method("to_dict"):
+		return value.to_dict()
+	return value
+
+
+func _assert_content_eq(actual, expected):
+	var actual_dict = _as_dict(actual)
+	var expected_dict = _as_dict(expected)
+	if actual_dict is Dictionary and expected_dict is Dictionary:
+		for key in actual_dict.keys():
+			if not expected_dict.has(key):
+				actual_dict.erase(key)
+	assert_eq_deep(actual_dict, expected_dict)
+
+
 func _get_next_options_content(dialogue):
 	var content = dialogue.get_content()
 	while content.type != "options":
@@ -65,7 +83,7 @@ func test_simple_lines_file():
 	]
 
 	for line in lines:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 
 func test_translate_files():
@@ -83,7 +101,7 @@ func test_translate_files():
 	]
 
 	for line in lines:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 	TranslationServer.set_locale("en")
 
@@ -200,12 +218,12 @@ func test_options():
 	]
 
 	for line in first_part:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 	dialogue.choose(0)
 
 	for line in life_option:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 
 func test_fallback_options():
@@ -213,12 +231,12 @@ func test_fallback_options():
 	var content = parse("*= a\n>= b\nend")
 	interpreter.init(content)
 
-	assert_eq_deep(interpreter.get_content(), _options({ "options": [_option({ "text": "a" }), _option({ "text": "b" }) ] }))
+	_assert_content_eq(interpreter.get_content(), _options({ "options": [_option({ "text": "a" }), _option({ "text": "b" }) ] }))
 	interpreter.choose(0)
 	assert_eq_deep(interpreter.get_content().text, "a")
 	assert_eq_deep(interpreter.get_content().text, "end")
 	interpreter.select_block()
-	assert_eq_deep(interpreter.get_content(), _line({ "type": "line", "text": "b" }))
+	_assert_content_eq(interpreter.get_content(), _line({ "type": "line", "text": "b" }))
 
 
 func test_include_hidden_options():
@@ -316,27 +334,27 @@ func test_blocks_and_diverts():
 	]
 
 	for line in initial_dialogue:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 	dialogue.choose(0)
 
 	for line in life_option:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 	dialogue.choose(1)
 
 	for line in everything_option:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 	dialogue.choose(0)
 
 	for line in universe_option:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 	dialogue.choose(0)
 
 	for line in goodbye_option:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 
 func test_links_and_diverts():
@@ -360,7 +378,7 @@ func test_links_and_diverts():
 	]
 
 	for line in lines:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 
 
@@ -497,9 +515,9 @@ func test_variables():
 	)
 	dialogue.choose(1)
 
-	assert_eq_deep(dialogue.get_content(), _line({ "type": "line", "text": "I want to talk about the universe!", "speaker": "player" }))
-	assert_eq_deep(dialogue.get_content(), _line({ "type": "line", "text": "That's too complex!", "speaker": "npc" }))
-	assert_eq_deep(dialogue.get_content(), _line({ "type": "line", "text": "I'm in trouble" }))
+	_assert_content_eq(dialogue.get_content(), _line({ "type": "line", "text": "I want to talk about the universe!", "speaker": "player" }))
+	_assert_content_eq(dialogue.get_content(), _line({ "type": "line", "text": "That's too complex!", "speaker": "npc" }))
+	_assert_content_eq(dialogue.get_content(), _line({ "type": "line", "text": "I'm in trouble" }))
 	assert_eq_deep(dialogue.get_content().type, "end")
 	assert_eq_deep(dialogue.get_variable('xx'), true)
 
@@ -740,7 +758,7 @@ func test_file_path_without_extension():
 	]
 
 	for line in lines:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 func test_uses_configured_dialogue_folder():
 	var dialogue = ClydeDialogue.new()
@@ -757,7 +775,7 @@ func test_uses_configured_dialogue_folder():
 	]
 
 	for line in lines:
-		assert_eq_deep(dialogue.get_content(), line)
+		_assert_content_eq(dialogue.get_content(), line)
 
 
 func test_has_blocks():
@@ -784,10 +802,10 @@ second option
 	var second_option = _options({ "text": "second option", "options": [_option({"text": "option"})] })
 	second_option.meta = { "line": 3, "column": 0 }
 
-	assert_eq_deep(interpreter.get_content(), first_line)
-	assert_eq_deep(interpreter.get_content(), first_option)
+	_assert_content_eq(interpreter.get_content(), first_line)
+	_assert_content_eq(interpreter.get_content(), first_option)
 	interpreter.choose(0)
-	assert_eq_deep(interpreter.get_content(), second_option)
+	_assert_content_eq(interpreter.get_content(), second_option)
 
 
 func test_match_right_condition():

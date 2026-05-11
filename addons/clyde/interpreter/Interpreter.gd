@@ -5,6 +5,11 @@ signal event_triggered(event_name: String, parameters: Array)
 
 const Memory = preload("./Memory.gd")
 const LogicInterpreter = preload("./LogicInterpreter.gd")
+const DialogueContent = preload("../resource/ClydeDialogueContent.gd")
+const DialogueLine = preload("../resource/ClydeDialogueLine.gd")
+const DialogueOptions = preload("../resource/ClydeDialogueOptions.gd")
+const DialogueOption = preload("../resource/ClydeDialogueOption.gd")
+const DialogueEnd = preload("../resource/ClydeDialogueEnd.gd")
 
 const CONTENT_TYPE_LINE = "line"
 const CONTENT_TYPE_OPTIONS = "options"
@@ -43,7 +48,7 @@ func init(document: Dictionary, interpreter_options: Dictionary = {}) -> void:
 	_initialize_handlers()
 
 
-func get_content() -> Dictionary:
+func get_content() -> DialogueContent:
 	return _handle_next_node(_stack_head().current)
 
 
@@ -173,7 +178,7 @@ func _initialize_handlers() -> void:
 	}
 
 
-func _handle_document_node(doc_node: Dictionary) -> Dictionary:
+func _handle_document_node(doc_node: Dictionary) -> DialogueContent:
 	var node = _stack_head()
 	_anchors = doc_node.anchors
 	_doc_anchors = doc_node.get("links", [])
@@ -182,7 +187,7 @@ func _handle_document_node(doc_node: Dictionary) -> Dictionary:
 		node.content_index = content_index
 		return _handle_next_node(node.current.content[content_index]);
 
-	return { "type": CONTENT_TYPE_END }
+	return _build_end_content()
 
 
 func _handle_content_node(content_node):
@@ -199,23 +204,21 @@ func _handle_content_node(content_node):
 	return _handle_next_node(_stack_head().current);
 
 
-func _handle_line_node(line_node):
+func _handle_line_node(line_node) -> DialogueLine:
 	if line_node.get("_index") == null:
 		line_node["_index"] = _generate_index()
 
-	var line = {
-		"type": CONTENT_TYPE_LINE,
-		"tags": line_node.get("tags"),
-		"id": line_node.get("id"),
-		"speaker": line_node.get("speaker"),
-		"text": _replace_variables(_translate_text(line_node.get("id"), line_node.get("value"), line_node.get("id_suffixes")))
-	}
+	var line = DialogueLine.new()
+	line.tags = line_node.get("tags", [])
+	line.id = line_node.get("id")
+	line.speaker = line_node.get("speaker")
+	line.text = _replace_variables(_translate_text(line_node.get("id"), line_node.get("value"), line_node.get("id_suffixes")))
 	if line_node.has("meta"):
 		line.meta = line_node.meta
 	return line
 
 
-func _handle_options_node(options_node):
+func _handle_options_node(options_node) -> DialogueOptions:
 	if options_node.get("_index") == null:
 		options_node["_index"] = _generate_index()
 		_mem.set_internal_variable('OPTIONS_COUNT', options_node.content.size())
@@ -234,14 +237,12 @@ func _handle_options_node(options_node):
 		choose(0)
 		return _handle_next_node(_stack_head().current)
 
-	var o = {
-		"type": CONTENT_TYPE_OPTIONS,
-		"speaker": options_node.get("speaker"),
-		"id": options_node.get("id"),
-		"tags": options_node.get("tags"),
-		"text": _replace_variables(_translate_text(options_node.get("id"), options_node.get("name"), options_node.get("id_suffixes"))),
-		"options": options.map(func(e): return _map_option(e, options.find(e), _config.include_hidden_options)),
-	}
+	var o = DialogueOptions.new()
+	o.speaker = options_node.get("speaker")
+	o.id = options_node.get("id")
+	o.tags = options_node.get("tags", [])
+	o.text = _replace_variables(_translate_text(options_node.get("id"), options_node.get("name"), options_node.get("id_suffixes")))
+	o.options = options.map(func(e): return _map_option(e, options.find(e), _config.include_hidden_options))
 	if options_node.has("meta"):
 		o.meta = options_node.meta
 	return o
@@ -281,15 +282,14 @@ func _check_if_option_not_accessed(option):
 	return option != null and not (option.mode == 'once' and _mem.was_already_accessed(option._index))
 
 
-func _map_option(option, _index, include_visibility_prop = false):
+func _map_option(option, _index, include_visibility_prop = false) -> DialogueOption:
 	var o = option if option.type == 'option' else option.content
-	var result = {
-		"speaker": o.get("speaker"),
-		"id": o.get("id"),
-		"tags": o.get("tags"),
-		"text": _replace_variables(_translate_text(o.get("id"), o.get("name"), o.get("id_suffixes"))),
-		"visited": _mem.was_already_accessed(option._index),
-	}
+	var result = DialogueOption.new()
+	result.speaker = o.get("speaker")
+	result.id = o.get("id")
+	result.tags = o.get("tags", [])
+	result.text = _replace_variables(_translate_text(o.get("id"), o.get("name"), o.get("id_suffixes")))
+	result.visited = _mem.was_already_accessed(option._index)
 
 	if include_visibility_prop:
 		result.is_visible = o.get("is_visible", false)
@@ -368,7 +368,7 @@ func _handle_variations_node(variations, attempt = 0):
 	return _handle_next_node(variations.content[next]);
 
 
-func _handle_block_node(block):
+func _handle_block_node(block) -> DialogueContent:
 	_add_to_stack(block)
 	var node = _stack_head()
 	var content_index = node.content_index + 1
@@ -377,10 +377,10 @@ func _handle_block_node(block):
 		node.content_index = content_index
 		return _handle_next_node(node.current.content.content[content_index]);
 
-	return { "type": CONTENT_TYPE_END }
+	return _build_end_content()
 
 
-func _handle_divert_node(divert):
+func _handle_divert_node(divert) -> DialogueContent:
 	if divert.target is Dictionary:
 		return _divert_to_linked_doc(divert.target)
 
@@ -394,20 +394,20 @@ func _handle_divert_node(divert):
 			_stack_pop()
 			return _handle_next_node(_stack_head().current)
 
-		return { "type": CONTENT_TYPE_END }
+		return _build_end_content()
 
 	if divert.target == '<end>':
 		_initialise_stack(_doc)
 		_stack_head().content_index = _stack_head().current.content.size();
-		return { "type": CONTENT_TYPE_END }
+		return _build_end_content()
 
 	return _handle_next_node(_anchors[divert.target])
 
 
-func _divert_to_linked_doc(link: Dictionary):
+func _divert_to_linked_doc(link: Dictionary) -> DialogueContent:
 	if not _doc_anchors.has(link.link):
 		push_error("Could not divert to '%s'. Link not found." % link.link)
-		return
+		return _build_end_content()
 
 	var doc_path = _doc_anchors[link.link]
 
@@ -425,7 +425,7 @@ func _divert_to_linked_doc(link: Dictionary):
 		var doc = _file_loader.call(actual_path)
 		if doc.is_empty():
 			push_error("Could not load file '%s'" % actual_path)
-			return { "type": CONTENT_TYPE_END }
+			return _build_end_content()
 
 		doc._index = link.link
 		doc.type = "linked_document"
@@ -446,7 +446,7 @@ func _divert_to_linked_doc(link: Dictionary):
 		return _handle_next_node(_anchors[link.block])
 
 
-func _handle_linked_doc(doc: Dictionary):
+func _handle_linked_doc(doc: Dictionary) -> DialogueContent:
 	_doc_stack.pop_back()
 	var doc_node = _doc_stack[_doc_stack.size() - 1]
 	_anchors = doc_node.anchors
@@ -455,22 +455,27 @@ func _handle_linked_doc(doc: Dictionary):
 	return _handle_next_node(_stack_head().current)
 
 
-func _handle_assignments_node(assignment_node):
+func _handle_assignments_node(assignment_node) -> DialogueContent:
 	for assignment in assignment_node.assignments:
 		_logic.handle_assignment(assignment)
 	return _handle_next_node(_stack_head().current);
 
 
-func _handle_events_node(events):
+func _handle_events_node(events) -> DialogueContent:
 	_trigger_events(events)
 	return _handle_next_node(_stack_head().current);
 
 
-func _handle_next_node(node):
+func _handle_next_node(node) -> DialogueContent:
 	if _handlers.has(node.type):
 		return _handlers[node.type].call(node)
 	else:
 		printerr("Unkown node type '%s'" % node.type)
+		return _build_end_content()
+
+
+func _build_end_content() -> DialogueEnd:
+	return DialogueEnd.new()
 
 
 func _translate_text(key, text, id_suffixes = null):

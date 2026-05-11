@@ -356,7 +356,7 @@ func _on_player_content_finished_changing(dialogue_key, content):
 	if content.type == "end":
 		editor.clear_executing_line(dialogue_key)
 		return
-	if content.has("meta"):
+	if content.meta != null:
 		editor.set_executing_line(dialogue_key, content.meta.line)
 
 

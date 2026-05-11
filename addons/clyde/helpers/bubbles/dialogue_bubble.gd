@@ -74,7 +74,7 @@ func show_bubble():
 	self.show()
 
 
-func set_content(content: Dictionary):
+func set_content(content: ClydeDialogueContent):
 	if _speaker_field.text == "" and content.speaker != null:
 		_speaker_field.text = content.speaker
 		_speaker_field.show()
@@ -122,7 +122,7 @@ func _on_dialogue_tick():
 		_waiting_options = false
 
 
-func _setup_options(content: Dictionary):
+func _setup_options(content: ClydeDialogueOptions):
 	var button_group = ButtonGroup.new()
 	_selected_option_index = 0
 	# cleanup previous options
