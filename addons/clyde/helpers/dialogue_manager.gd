@@ -182,13 +182,13 @@ func _next_content() -> void:
 
 	_is_options_mode = content.type == _dialogue.CONTENT_TYPE_OPTIONS
 
-	_current_bubble = _get_bubble(content.get("speaker"))
+	_current_bubble = _get_bubble(content.speaker)
 	_current_bubble.set_content(content)
 
-	if _current_speaker != content.get("speaker", ""):
+	if _current_speaker != content.speaker:
 		var previous_speaker = _current_speaker
-		var new_speaker = content.get("speaker", "")
-		_current_speaker = "" if new_speaker == null else new_speaker
+		var new_speaker = content.speaker
+		_current_speaker = new_speaker
 		speaker_changed.emit(_current_speaker, previous_speaker)
 
 
@@ -210,10 +210,10 @@ func _clear_manager():
 	_current_speaker = ""
 
 
-func _get_bubble(speaker: Variant):
+func _get_bubble(speaker: String):
 	var bubble_name = "default"
 
-	if speaker != null:
+	if speaker != "":
 		bubble_name = speaker
 		if not _bubbles.has(speaker):
 			var bubble = _create_bubble()

@@ -21,22 +21,22 @@ func _ready():
 	add_theme_stylebox_override("panel", style)
 
 
-func set_content(content: Dictionary, should_show_meta = false):
+func set_content(content: ClydeDialogueContent, should_show_meta = false):
 	if content.type == "line":
 		_configure_line(content, should_show_meta)
 	elif content.type == "options":
 		_configure_options(content, should_show_meta)
 
 
-func _configure_line(content: Dictionary, should_show_meta: bool):
+func _configure_line(content: ClydeDialogueContent, should_show_meta: bool):
 	_content_field.text = content.text
 	_set_speaker(content)
 	_set_meta(content)
 	_set_id_and_tags(content, should_show_meta)
 
 
-func _configure_options(content: Dictionary, should_show_meta: bool):
-	if content.text == null:
+func _configure_options(content: ClydeDialogueOptions, should_show_meta: bool):
+	if content.text == "":
 		_content_field.hide()
 	else:
 		_content_field.text = content.text
@@ -57,22 +57,22 @@ func _configure_options(content: Dictionary, should_show_meta: bool):
 			do.modulate.a = 0.7
 
 
-func _set_speaker(content: Dictionary):
-	if content.speaker == null:
+func _set_speaker(content: ClydeDialogueContent):
+	if content.speaker == "":
 		_speaker_field.hide()
 	else:
 		_speaker_field.text = content.speaker
 
 
-func _set_meta(content: Dictionary):
-	if content.has("meta"):
+func _set_meta(content: ClydeDialogueContent):
+	if not content.meta.is_empty():
 		_meta = content.meta
 
 
-func _set_id_and_tags(content: Dictionary, should_show_meta: bool):
-	if content.id != null:
+func _set_id_and_tags(content: ClydeDialogueContent, should_show_meta: bool):
+	if content.id != "":
 		_add_id_badge(content.id)
-	if content.tags != null and content.tags.size() > 0:
+	if content.tags.size() > 0:
 		_add_tags_badges(content.tags)
 	if  should_show_meta and _line_meta.get_child_count() > 0:
 		_line_meta.show()

@@ -100,7 +100,7 @@ func has_block(block_name: String) -> bool:
 
 ## Get next dialogue content. [br]
 ## The content may be a line, options or end of dialogue.
-func get_content() -> Dictionary:
+func get_content() -> ClydeDialogueContent:
 	return _interpreter.get_content()
 
 

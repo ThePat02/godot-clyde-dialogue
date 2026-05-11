@@ -41,7 +41,7 @@ func _get_next_dialogue_line():
 
 
 func _set_up_line(content):
-	_line_container.get_node("speaker").text = content.get('speaker') if content.get('speaker') != null else ''
+	_line_container.get_node("speaker").text = content.speaker
 	_line_container.get_node("text").text = content.text
 
 
@@ -49,8 +49,8 @@ func _set_up_options(options):
 	for c in _options_container.get_node("items").get_children():
 		c.queue_free()
 
-	_options_container.get_node("name").text = options.get('text') if options.get('text') != null else ''
-	_options_container.get_node("speaker").text = options.get('speaker') if options.get('speaker') != null else ''
+	_options_container.get_node("name").text = options.text
+	_options_container.get_node("speaker").text = options.speaker
 	_options_container.get_node("speaker").visible = _options_container.get_node("speaker").text != ""
 
 	var index = 0
