@@ -72,6 +72,7 @@ func _get_next_options_content(dialogue):
 
 
 func test_simple_lines_file():
+	TranslationServer.set_locale("en")
 	var dialogue = ClydeDialogue.new()
 	dialogue.load_dialogue('simple_lines')
 
